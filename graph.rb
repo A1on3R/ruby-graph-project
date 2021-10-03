@@ -1,4 +1,20 @@
+module GraphUtils
+    def self.genCompleteGraph(n)
+        #Create n nodes
+        g = Graph.new
 
+        # for each node, in 0..n-1, we create an edge between that node and *every other node* in the list at that point
+        (0..n-1).each do |i|
+            node = "V" + i.to_s
+            g.add_node(node.to_sym)
+            
+
+            
+        end
+        g
+    end
+    
+end
 
 
 class Graph
@@ -82,19 +98,6 @@ class Graph
         end    
     end
 
-    def genCompleteGraph(n)
-        #Create n nodes
-        g = Graph.new
-
-        # for each node, in 0..n-1, we create an edge between that node and *every other node* in the list at that point
-        (0..n-1).each do |i|
-            node = "V" + i.to_s
-            g.add_node(node.to_sym)
-            
-
-            
-        end
-        g
-    end
+   
 
 end
