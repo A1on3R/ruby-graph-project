@@ -1,6 +1,6 @@
 class Graph
     attr_accessor :num_nodes, :num_edges, :node_set, :adjmap
-INC NUM OF NODES AND EDGES
+
     def initialize
         @num_nodes = 0
         @num_edges = 0
