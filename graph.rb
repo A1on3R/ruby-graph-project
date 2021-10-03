@@ -1,20 +1,28 @@
 module GraphUtils
-    def self.genCompleteGraph(n)
+    def self.genCompleteGraph(n, node_set = Set.new)
         #Create n nodes
         g = Graph.new
 
         # for each node, in 0..n-1, we create an edge between that node and *every other node* in the list at that point
         (0..n-1).each do |i|
-            node = "V" + i.to_s
-            g.add_node(node.to_sym)
+            # node = "V" + i.to_s
+            g.add_node(("V" + i.to_s).to_sym) #node is added and included in g's nodelist. use the node_set for making new edges
             
+            #now, connect that node to each node in the set
+            node_set.each do |j|
+                g.add_edge(("V" + i.to_s).to_sym,j)
+            end
 
-            
+            #node goes into set
+            node_set << ("V" + i.to_s).to_sym
         end
-        g
+            
+            g
     end
-    
+           
 end
+        
+ 
 
 
 class Graph
