@@ -1,5 +1,5 @@
 module GraphUtils
-    def self.genCompleteGraph(n, node_set = Set.new)
+    def self.genCompleteGraph(n, p = 1.0, node_set = Set.new)
         #Create n nodes
         g = Graph.new
 
@@ -10,7 +10,13 @@ module GraphUtils
             
             #now, connect that node to each node in the set
             node_set.each do |j|
-                g.add_edge(("V" + i.to_s).to_sym,j)
+                #can i generate rand num between 1 and 100 and multiply by p and add the edge only if that number is greater than the total non possibilities
+                ran_num = rand(1..100)
+                if 1 <= ran_num && ran_num <= 100 - (100 -(p * 100))
+
+                    g.add_edge(("V" + i.to_s).to_sym,j)
+
+                end
             end
 
             #node goes into set
@@ -80,11 +86,12 @@ class Graph
 
     
     def add_edge(n1, n2)
-        #nodes must be in set
+        #nodes must be in set And edges must not exist in adjmap
         if (adjmap.has_key?(n1) && adjmap.has_key?(n2) && !edge_list.include?([n1,n2]) && n1 != n2)
-        #edges must not exist in adjmap
+        
             adjmap[n1] << n2
-            adjmap[n2] << n1 
+            adjmap[n2] << n1
+            @num_edges += 1 
             edge_list << [n1,n2]
             [n1,n2]
         else
