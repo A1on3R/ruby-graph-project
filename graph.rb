@@ -135,7 +135,7 @@ class Graph
             x = (center[0] + radius * Math.cos(2*Math::PI * i / n)).to_f.truncate(2)
             y = (center[1] + radius * Math.sin(2*Math::PI * i / n)).to_f.truncate(2)
             
-            frame.circle cx: x, cy: y, r: 10, fill: '#f99'
+            frame.circle cx: x, cy: y, r: 5, fill: '#f99'
             map[i] = [x,y] 
         end
         map
