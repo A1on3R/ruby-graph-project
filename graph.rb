@@ -43,9 +43,8 @@ end
 
 
 class Graph
-include Victor
-
-   
+    
+    include Victor
     
     attr_accessor :num_nodes, :num_edges, :adjmap, :node_list, :edge_list
 
@@ -133,10 +132,10 @@ include Victor
 
     def drawnodes(frame, n, center, radius, map)
         n.times do |i|
-            x = center[0] + radius * Math.cos(2*Math::PI * i / n)
-            y = center[1] + radius * Math.sin(2*Math::PI * i / n)
+            x = (center[0] + radius * Math.cos(2*Math::PI * i / n)).to_f.truncate(2)
+            y = (center[1] + radius * Math.sin(2*Math::PI * i / n)).to_f.truncate(2)
             
-            frame.rect x: x, y: y, width: 10, height: 10,fill: '#f99'
+            frame.circle cx: x, cy: y, r: 10, fill: '#f99'
             map[i] = [x,y] 
         end
         map
@@ -164,18 +163,19 @@ include Victor
         
         frame = SVG.new
             
-                frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
-            
-       
+        frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
+        map = self.drawnodes(frame,num,center,radius,{})    
         
+        for edge in edge_list
+            n1 = edge[0]
+            n2 = edge[1]
+            self.drawedge(frame,map,n1,n2)
+        end
+        map = self.drawnodes(frame,num,center,radius,{})
 
-                map = self.drawnodes(frame,num,center,radius,{})
+        
             
-            for edge in edge_list
-                n1 = edge[0]
-                n2 = edge[1]
-                self.drawedge(frame,map,n1,n2)
-            end
+            
         
         frame.save(filename)
 
