@@ -51,10 +51,17 @@ module GraphUtils
                 dfs_rec(x,visited,adjmap)
             end
         end
-
-
     end
-           
+    
+    
+    
+    def self.render_graphs(filename, graphs_strokes_fills)
+
+        for graph,stroke,fill in graphs_strokes_fills
+            graph.render(filename,[400,400],100,stroke,fill)
+        end
+    end
+
 end
 
 
@@ -146,12 +153,12 @@ class Graph
     end
 
 
-    def drawnodes(frame, n, center, radius, map)
+    def drawnodes(frame, n, center, radius, map, node_fill)
         n.times do |i|
             x = (center[0] + radius * Math.cos(2*Math::PI * i / n)).to_f.truncate(2)
             y = (center[1] + radius * Math.sin(2*Math::PI * i / n)).to_f.truncate(2)
             
-            frame.circle cx: x, cy: y, r: 5, fill: '#f99'
+            frame.circle cx: x, cy: y, r: 5, fill: node_fill
             map[i] = [x,y] 
         end
         map
@@ -160,9 +167,9 @@ class Graph
     
     
     
-    def drawedge(frame,map,n1,n2)
+    def drawedge(frame,map,n1,n2,stroke="black")
         style = {
-        stroke: "black",
+        stroke: stroke,
         stroke_width: 2
     }
         x1,y1 = map[n1][0], map[n1][1]
@@ -172,22 +179,24 @@ class Graph
     
     end
 
+    
 
-    def render(filename,center,radius)
+
+    def render(filename,center,radius,edge_stroke="black",node_fill="blue")
         
         num = @num_nodes
         
         frame = SVG.new
             
         frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
-        map = self.drawnodes(frame,num,center,radius,{})    
+        map = self.drawnodes(frame,num,center,radius,{},node_fill)    
         
         for edge in edge_list
             n1 = edge[0]
             n2 = edge[1]
-            self.drawedge(frame,map,n1,n2)
+            self.drawedge(frame,map,n1,n2,edge_stroke)
         end
-        map = self.drawnodes(frame,num,center,radius,{})
+        map = self.drawnodes(frame,num,center,radius,{},node_fill)
 
         
             
