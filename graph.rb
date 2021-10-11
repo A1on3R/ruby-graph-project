@@ -30,16 +30,32 @@ module GraphUtils
             
             g
     end
+    
+    
+    
+    def self.dfs(graph,node)
+        visited = Set.new
+        
+        m = graph.adjmap
+        
+        dfs_rec(node,visited,m)
+        return visited
+
+    end
+    
+    
+    def self.dfs_rec(node,visited,adjmap)
+        visited.add(node)
+        for x in adjmap[node]
+            if !visited.include?(x)
+                dfs_rec(x,visited,adjmap)
+            end
+        end
+
+
+    end
            
 end
-
-    
-    
-
-    
-
-        
- 
 
 
 class Graph
@@ -184,3 +200,12 @@ class Graph
    
 
 end
+
+#for subgraphs, take the main graph, render it, then
+#collect the set of edges of the subgraph by getting the edges associated with the set of nodes in the subgraph
+#create a new graph with the gathered information
+
+#Can I go through set -> color
+#go through edges -> color?
+
+#edge list alone has all i need to color subgraph?
