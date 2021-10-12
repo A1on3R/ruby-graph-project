@@ -62,6 +62,19 @@ module GraphUtils
         end
     end
 
+    def self.genSubgraph(parent, ns)
+        child = Graph.new
+        child.parent = parent
+        child.num_nodes = ns.size
+        child.node_list = ns.to_a
+        #parent.layout_circular([400,400],100) 
+        # parent.render('parent',[400,400],100)
+        # child.layout = parent.layout
+        # child.frame = parent.frame
+        child
+     
+    end
+
 end
 
 
@@ -69,13 +82,16 @@ class Graph
     
     include Victor
     
-    attr_accessor :num_nodes, :num_edges, :adjmap, :node_list, :edge_list
+    attr_accessor :num_nodes, :num_edges, :adjmap, :node_list, :edge_list, :layout, :parent, :frame
 
     def initialize
         @num_nodes = 0
         @num_edges = 0
         @node_list = Array.new
         @edge_list = Array.new
+        @layout = {}
+        @parent = nil
+        @frame = nil
         
         @adjmap = {}
 
@@ -116,17 +132,21 @@ class Graph
         node_list
     end
 
+    def node_to_int(node_sym)
+        node_s = node_sym.to_s
+        node_s[0] = ''
+        node_int = node_s.to_i
+        node_int
+
+    end
+
     
     def add_edge(n1, n2)
         #nodes must be in set And edges must not exist in adjmap
         if (adjmap.has_key?(n1) && adjmap.has_key?(n2) && !edge_list.include?([n1,n2]) && n1 != n2)
-            #can I add the edges as integers?
-            sn1 = n1.to_s
-            sn2 = n2.to_s
-            sn1[0] = ''
-            sn2[0] = ''
-            s1 = sn1.to_i
-            s2 = sn2.to_i
+           
+            s1 = self.node_to_int(n1)
+            s2 = self.node_to_int(n2)
         
             adjmap[n1] << n2
             adjmap[n2] << n1
@@ -163,7 +183,30 @@ class Graph
         end
         map
     end
-    
+
+    def drawnode(frame, x, y, node_fill)
+
+            frame.circle cx: x, cy: y, r: 5, fill: node_fill       
+    end
+
+    def layout_circular(center, radius)
+
+        frame = SVG.new
+            
+        frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
+        map = {}
+        (0..node_list.size - 1).each do |i|
+
+            y = (center[1] + radius * Math.sin(2*Math::PI * i / (node_list.size))).to_f.truncate(2)
+            x = (center[0] + radius * Math.cos(2*Math::PI * i / (node_list.size))).to_f.truncate(2)
+
+            map[i] = [x,y]
+        end
+        @layout = map
+        @frame = frame
+        map
+    end
+   
     
     
     
@@ -184,23 +227,31 @@ class Graph
 
     def render(filename,center,radius,edge_stroke="black",node_fill="blue")
         
-        num = @num_nodes
+       
+
+        if self.parent == nil
+            map = self.layout_circular(center,radius)
+        else
+            map = self.parent.layout
+            self.layout = map
+            self.frame = parent.frame
+        end
+       
         
-        frame = SVG.new
-            
-        frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
-        map = self.drawnodes(frame,num,center,radius,{},node_fill)    
+
         
         for edge in edge_list
             n1 = edge[0]
             n2 = edge[1]
             self.drawedge(frame,map,n1,n2,edge_stroke)
         end
-        map = self.drawnodes(frame,num,center,radius,{},node_fill)
 
-        
-            
-            
+        for node in node_list
+            node_key = self.node_to_int(node)
+            x,y = map[node_key][0], map[node_key][1]
+            self.drawnode(frame,x,y,node_fill)
+        end
+                  
         
         frame.save(filename)
 
