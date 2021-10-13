@@ -65,12 +65,18 @@ module GraphUtils
     def self.genSubgraph(parent, ns)
         child = Graph.new
         child.parent = parent
-        child.num_nodes = ns.size
-        child.node_list = ns.to_a
-        #parent.layout_circular([400,400],100) 
-        # parent.render('parent',[400,400],100)
-        # child.layout = parent.layout
-        # child.frame = parent.frame
+       
+        child.add_nodes(ns)
+        
+        for x in child.node_list
+           for list in parent.adjmap.values
+              for node in list
+                  child.add_edge(x,node)
+              end
+          end
+    
+        end
+
         child
      
     end
@@ -260,12 +266,3 @@ class Graph
    
 
 end
-
-#for subgraphs, take the main graph, render it, then
-#collect the set of edges of the subgraph by getting the edges associated with the set of nodes in the subgraph
-#create a new graph with the gathered information
-
-#Can I go through set -> color
-#go through edges -> color?
-
-#edge list alone has all i need to color subgraph?
