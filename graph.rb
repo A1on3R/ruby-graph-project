@@ -30,13 +30,12 @@ module GraphUtils
             
             g
     end
-    
-    
-    
+
     def self.dfs(graph,node)
         visited = Set.new
         
         m = graph.adjmap
+       
         
         dfs_rec(node,visited,m)
         return visited
@@ -48,35 +47,45 @@ module GraphUtils
         visited.add(node)
         for x in adjmap[node]
             if !visited.include?(x)
+                
                 dfs_rec(x,visited,adjmap)
             end
         end
+    end
+    def self.dfs_edges_rec(visited,node,parent,child)
+        visited.add(node)
+        for x in parent.adjmap[node]
+            if !visited.include?(x)
+                child.add_edge(node, x)
+                dfs_edges_rec(visited,x,parent,child)
+            end
+        end
+
+    end
+
+    def self.dfs_edges(node,parent,child)
+        visited = Set.new
+        dfs_edges_rec(visited,node,parent,child)   
     end
     
     
     
     def self.render_graphs(filename, graphs_strokes_fills)
-
+        #Can I assign the global frame using the first graph here?
         for graph,stroke,fill in graphs_strokes_fills
-            graph.render(filename,[400,400],100,stroke,fill)
+            graph.render(filename,[400,400],100,stroke,fill,false)
         end
+        graphs_strokes_fills[0][0].clear_frame
     end
 
     def self.genSubgraph(parent, ns)
         child = Graph.new
         child.parent = parent
+        o_node = ns.to_a[0]
        
         child.add_nodes(ns)
-        
-        for x in child.node_list
-           for list in parent.adjmap.values
-              for node in list
-                  child.add_edge(x,node)
-              end
-          end
-    
-        end
-
+        #Without using visited, it can color all the edges from the reachable nodes
+        dfs_edges(o_node,parent,child)
         child
      
     end
@@ -89,16 +98,17 @@ class Graph
     include Victor
     
     attr_accessor :num_nodes, :num_edges, :adjmap, :node_list, :edge_list, :layout, :parent, :frame
-
+    @@frame
+    @@frame = SVG.new
+            
+    @@frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
     def initialize
         @num_nodes = 0
         @num_edges = 0
         @node_list = Array.new
         @edge_list = Array.new
         @layout = {}
-        @parent = nil
-        @frame = nil
-        
+        @parent = nil 
         @adjmap = {}
 
     end
@@ -137,33 +147,22 @@ class Graph
     def get_nodes
         node_list
     end
-
-    def node_to_int(node_sym)
-        node_s = node_sym.to_s
-        node_s[0] = ''
-        node_int = node_s.to_i
-        node_int
-
-    end
-
-    
+  
     def add_edge(n1, n2)
         #nodes must be in set And edges must not exist in adjmap
         if (adjmap.has_key?(n1) && adjmap.has_key?(n2) && !edge_list.include?([n1,n2]) && n1 != n2)
            
-            s1 = self.node_to_int(n1)
-            s2 = self.node_to_int(n2)
+            # s1 = self.node_to_int(n1)
+            # s2 = self.node_to_int(n2)
         
             adjmap[n1] << n2
             adjmap[n2] << n1
             @num_edges += 1 
-            edge_list << [s1,s2]
+            edge_list << [n1,n2]
             [n1,n2]
         else
             puts "Cannot add edges when they already exist or if the nodes dont exist"
         end
-
-
     end
 
     def get_edges
@@ -179,17 +178,6 @@ class Graph
     end
 
 
-    def drawnodes(frame, n, center, radius, map, node_fill)
-        n.times do |i|
-            x = (center[0] + radius * Math.cos(2*Math::PI * i / n)).to_f.truncate(2)
-            y = (center[1] + radius * Math.sin(2*Math::PI * i / n)).to_f.truncate(2)
-            
-            frame.circle cx: x, cy: y, r: 5, fill: node_fill
-            map[i] = [x,y] 
-        end
-        map
-    end
-
     def drawnode(frame, x, y, node_fill)
 
             frame.circle cx: x, cy: y, r: 5, fill: node_fill       
@@ -197,24 +185,19 @@ class Graph
 
     def layout_circular(center, radius)
 
-        frame = SVG.new
-            
-        frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
         map = {}
         (0..node_list.size - 1).each do |i|
 
             y = (center[1] + radius * Math.sin(2*Math::PI * i / (node_list.size))).to_f.truncate(2)
             x = (center[0] + radius * Math.cos(2*Math::PI * i / (node_list.size))).to_f.truncate(2)
 
-            map[i] = [x,y]
+            map[('V' + i.to_s).to_sym] = [x,y]
         end
         @layout = map
-        @frame = frame
+        
         map
     end
    
-    
-    
     
     def drawedge(frame,map,n1,n2,stroke="black")
         style = {
@@ -228,41 +211,40 @@ class Graph
     
     end
 
-    
-
-
-    def render(filename,center,radius,edge_stroke="black",node_fill="blue")
+    def render(filename,center,radius,edge_stroke="black",node_fill="blue",single=true)
         
-       
-
+    
         if self.parent == nil
             map = self.layout_circular(center,radius)
         else
             map = self.parent.layout
             self.layout = map
-            self.frame = parent.frame
-        end
-       
-        
-
+            
+        end     
         
         for edge in edge_list
             n1 = edge[0]
             n2 = edge[1]
-            self.drawedge(frame,map,n1,n2,edge_stroke)
+            self.drawedge(@@frame,map,n1,n2,edge_stroke)
         end
 
         for node in node_list
-            node_key = self.node_to_int(node)
-            x,y = map[node_key][0], map[node_key][1]
-            self.drawnode(frame,x,y,node_fill)
+            x,y = map[node][0], map[node][1]
+            self.drawnode(@@frame,x,y,node_fill)
         end
-                  
-        
-        frame.save(filename)
+                   
+        @@frame.save(filename)
 
+        if single
+            self.clear_frame
+        end
+        
+    end
+    
+    def clear_frame
+        @@frame = SVG.new
+        @@frame.rect x: 0, y: 0, width: 800, height: 800,fill: '#ccc'
     end
 
    
-
 end
